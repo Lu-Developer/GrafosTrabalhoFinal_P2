@@ -11,32 +11,13 @@ public class ManipulacaoArquivos {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(diretorioAtual+File.separator+"config.txt"));
             String line;
-            String processadoDir = null;
-            String naoProcessadoDir = null;
 
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("Processado=")) {
-                    processadoDir = line.replace("Processado=", "");
-                } else if (line.startsWith("Não Processado=")) {
-                    naoProcessadoDir = line.replace("Não Processado=", "");
-                }
-            }
-            if (processadoDir == null){
-                throw new Exception("Arquivo config.txt não possuí destino para arquivos processados corretamente");
-            } else if(processadoDir != null) {
-                criarDiretorio(sucesso);
-            }
-            if (naoProcessadoDir == null){
-                throw new Exception("Arquivo config.txt não possuí destino para arquivos não processados corretamente");
-            } else if (naoProcessadoDir != null) {
-                criarDiretorio(erro);
-            }
+            criarDiretorio(sucesso);
+            criarDiretorio(erro);
         } catch (FileNotFoundException e) {
             criarDiretorio(configuracaoPath);
             criarArquivoConfig(diretorioAtual, pastaPrincipal, sucesso, erro, rotaAutomatica);
             criarDiretorios(diretorioAtual, pastaPrincipal, sucesso, erro, rotaAutomatica);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -73,17 +54,17 @@ public class ManipulacaoArquivos {
         }
     }
 
-    public static void processarArquivosRota(String pastaPrincipal) {
+    public static void processarArquivosRota(String pastaPrincipal, String pastaSucesso, String pastaErro) {
         File[] arquivos = new File(pastaPrincipal).listFiles();
         if (arquivos != null) {
             for (File arquivo : arquivos) {
                 if (arquivo.getName().startsWith("rota") && arquivo.getName().endsWith(".txt")) {
                     try {
                         processarArquivoRota(arquivo);
-                        File destino = new File(pastaPrincipal +File.separator+ "Processado" +File.separator+ arquivo.getName());
+                        File destino = new File(pastaSucesso +File.separator+ arquivo.getName());
                         arquivo.renameTo(destino);
                     } catch (Exception e) {
-                        File destino = new File(pastaPrincipal +File.separator+ "NaoProcessado" +File.separator+ arquivo.getName());
+                        File destino = new File(pastaErro +File.separator+ arquivo.getName());
                         arquivo.renameTo(destino);
                         e.printStackTrace();
                     }

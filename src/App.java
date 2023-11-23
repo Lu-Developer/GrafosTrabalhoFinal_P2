@@ -23,16 +23,26 @@ public class App {
             BufferedReader reader = new BufferedReader(new FileReader(arquivo));
             String line;
             String pastaPrincipal = null;
+            String pastaSucesso = null;
+            String pastaErro = null;
 
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("Principal")){
                     pastaPrincipal = line.split("=")[1];
                 }
 
+                if (line.startsWith("Sucesso")){
+                    pastaSucesso = line.split("=")[1];
+                }
+
+                if (line.startsWith("Erro")){
+                    pastaErro = line.split("=")[1];
+                }
+
                 if (line.startsWith("Rota")) {
                     String rota = line.split("=")[1];
                     if (rota.equals("true")){
-                        ManipulacaoArquivos.processarArquivosRota(pastaPrincipal);
+                        ManipulacaoArquivos.processarArquivosRota(pastaPrincipal, pastaSucesso, pastaErro);
                     }
                 }
             }
