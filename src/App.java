@@ -25,7 +25,6 @@ public class App {
             String pastaPrincipal = null;
 
             while ((line = reader.readLine()) != null) {
-
                 if (line.startsWith("Principal")){
                     pastaPrincipal = line.split("=")[1];
                 }
