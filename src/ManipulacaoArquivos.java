@@ -4,60 +4,33 @@ import model.Vertice;
 import java.io.*;
 
 public class ManipulacaoArquivos {
-    public static void main(String[] args) {
-        String diretorioAtual = System.getProperty("user.dir");
-        String pastaPrincipal = "Teste";
-        try {
-            criarDiretorios(diretorioAtual + File.separator + pastaPrincipal);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        processarArquivosRota(pastaPrincipal);
-    }
 
-    public static void criarDiretorios(String pastaPrincipal) throws Exception {
-        String configuracaoPath = pastaPrincipal + File.separator + "Configuracao";
+    public static void criarDiretorios(String diretorioAtual, String pastaPrincipal, String sucesso, String erro, boolean rotaAutomatica) throws Exception {
+        String configuracaoPath = pastaPrincipal + File.separator + "Configs";
         
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(configuracaoPath+File.separator+"config.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader(diretorioAtual+File.separator+"config.txt"));
             String line;
-            String processadoDir = null;
-            String naoProcessadoDir = null;
 
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("Processado=")) {
-                    processadoDir = line.replace("Processado=", "");
-                } else if (line.startsWith("Não Processado=")) {
-                    naoProcessadoDir = line.replace("Não Processado=", "");
-                }
-            }
-            if (processadoDir == null){
-                throw new Exception("Arquivo config.txt não possuí destino para arquivos processados corretamente");
-            } else if(processadoDir != null) {
-                criarDiretorio(processadoDir);
-            }
-            if (naoProcessadoDir == null){
-                throw new Exception("Arquivo config.txt não possuí destino para arquivos não processados corretamente");
-            } else if (naoProcessadoDir != null) {
-                criarDiretorio(naoProcessadoDir);
-            }
+            criarDiretorio(sucesso);
+            criarDiretorio(erro);
         } catch (FileNotFoundException e) {
             criarDiretorio(configuracaoPath);
-            criarArquivoConfig(configuracaoPath);
-            criarDiretorios(pastaPrincipal);
-        } catch (IOException e) {
-            e.printStackTrace();
+            criarArquivoConfig(diretorioAtual, pastaPrincipal, sucesso, erro, rotaAutomatica);
+            criarDiretorios(diretorioAtual, pastaPrincipal, sucesso, erro, rotaAutomatica);
         }
     }
 
-    private static void criarArquivoConfig(String configuracaoPath) {
-        File arquivo = new File(configuracaoPath+File.separator+"config.txt");
+    public static void criarArquivoConfig(String diretorioAtual, String pastaPrincipal, String pastaSucesso, String pastaErro, boolean rotaAutomatica) {
+        File arquivo = new File(diretorioAtual+File.separator+"config.txt");
         try {
             if (arquivo.createNewFile()){
                 try {
                     FileWriter writer = new FileWriter(arquivo);
-                    writer.write("Processado=Teste"+File.separator+"Processado"+System.lineSeparator()+"Não Processado=Teste"+File.separator+"NaoProcessado"+System.lineSeparator());
+                    writer.write("Principal= "+pastaPrincipal+System.lineSeparator()+
+                            "Sucesso= "+pastaSucesso+System.lineSeparator()+
+                            "Erro= "+pastaErro+System.lineSeparator() +
+                            "Rota automatica="+ rotaAutomatica +System.lineSeparator());
                     writer.close();
                 } catch (IOException e) {
                     // TODO: handle exception
@@ -81,17 +54,17 @@ public class ManipulacaoArquivos {
         }
     }
 
-    public static void processarArquivosRota(String pastaPrincipal) {
+    public static void processarArquivosRota(String pastaPrincipal, String pastaSucesso, String pastaErro) {
         File[] arquivos = new File(pastaPrincipal).listFiles();
         if (arquivos != null) {
             for (File arquivo : arquivos) {
                 if (arquivo.getName().startsWith("rota") && arquivo.getName().endsWith(".txt")) {
                     try {
                         processarArquivoRota(arquivo);
-                        File destino = new File(pastaPrincipal +File.separator+ "Processado" +File.separator+ arquivo.getName());
+                        File destino = new File(pastaSucesso +File.separator+ arquivo.getName());
                         arquivo.renameTo(destino);
                     } catch (Exception e) {
-                        File destino = new File(pastaPrincipal +File.separator+ "NaoProcessado" +File.separator+ arquivo.getName());
+                        File destino = new File(pastaErro +File.separator+ arquivo.getName());
                         arquivo.renameTo(destino);
                         e.printStackTrace();
                     }
@@ -165,7 +138,6 @@ public class ManipulacaoArquivos {
                     String linhaPesoTotal = linhaTrailer.split(";")[2];
                     resumoConexao = Integer.parseInt(linhaRC.split("=")[1]);
                     resumoPesos = Integer.parseInt(linhaRP.split("=")[1]);
-//                    somaPesosLinhas = Integer.parseInt(linhaPesoTotal);
                 } else {
                     throw new Exception("Erro ao ler linha do arquivo rota, formato da linha incompativel: "+line);
                 }

@@ -1,19 +1,57 @@
+import telas.Configuracao;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 
 public class App {
 
     private JTextField pastaField;
-    private JCheckBox sucessoCheckBox;
+    private JTextField sucessoField;
+    private JTextField erroField;
     private JCheckBox rotaAutomaticaCheckBox;
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            App app = new App();
-            app.createAndShowGUI();
-        });
+    public static void main(String[] args) throws IOException {
+        String diretorioRaiz = System.getProperty("user.dir");
+        String nomeArquivo = "config.txt";
+        File arquivo = new File(diretorioRaiz, nomeArquivo);
+
+        if (arquivo.exists()) {
+            System.out.println("O arquivo " + nomeArquivo + " já existe no diretório raiz.");
+            BufferedReader reader = new BufferedReader(new FileReader(arquivo));
+            String line;
+            String pastaPrincipal = null;
+            String pastaSucesso = null;
+            String pastaErro = null;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("Principal")){
+                    pastaPrincipal = line.split("=")[1];
+                }
+
+                if (line.startsWith("Sucesso")){
+                    pastaSucesso = line.split("=")[1];
+                }
+
+                if (line.startsWith("Erro")){
+                    pastaErro = line.split("=")[1];
+                }
+
+                if (line.startsWith("Rota")) {
+                    String rota = line.split("=")[1];
+                    if (rota.equals("true")){
+                        ManipulacaoArquivos.processarArquivosRota(pastaPrincipal, pastaSucesso, pastaErro);
+                    }
+                }
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> {
+                App app = new App();
+                app.createAndShowGUI();
+            });
+        }
     }
 
     private void createAndShowGUI() {
@@ -82,21 +120,47 @@ public class App {
 
     private JPanel createConfigurationsPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 2, 10, 10));
+        panel.setLayout(new GridLayout(6, 6, 15, 15));
 
         JLabel pastaLabel = new JLabel("Pasta:");
         pastaField = new JTextField();
         JLabel sucessoLabel = new JLabel("Sucesso:");
-        sucessoCheckBox = new JCheckBox();
+        sucessoField = new JTextField();
+        JLabel erroLabel = new JLabel("Erro:");
+        erroField = new JTextField();
         JLabel rotaAutomaticaLabel = new JLabel("Rota Automática:");
         rotaAutomaticaCheckBox = new JCheckBox();
+
+        JButton saveButton = new JButton("Salvar");
 
         panel.add(pastaLabel);
         panel.add(pastaField);
         panel.add(sucessoLabel);
-        panel.add(sucessoCheckBox);
+        panel.add(sucessoField);
+        panel.add(erroLabel);
+        panel.add(erroField);
         panel.add(rotaAutomaticaLabel);
         panel.add(rotaAutomaticaCheckBox);
+        panel.add(saveButton);
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String diretorioAtual = System.getProperty("user.dir");
+                String pastaPrincipal = diretorioAtual + File.separator + pastaField.getText();
+                String pastaSucesso = pastaPrincipal + File.separator + "Configs" + File.separator + sucessoField.getText();
+                String pastaErro = pastaPrincipal + File.separator + "Configs" + File.separator + erroField.getText();
+                boolean rotaAutomatica = rotaAutomaticaCheckBox.isSelected();
+
+                new Configuracao(pastaPrincipal, pastaSucesso, pastaErro, rotaAutomatica);
+                try {
+                    ManipulacaoArquivos.criarDiretorios(diretorioAtual, pastaPrincipal, pastaSucesso, pastaErro, rotaAutomatica);
+                } catch (Exception er) {
+                    er.printStackTrace();
+                    System.exit(1);
+                }
+            }
+        });
 
         return panel;
     }
