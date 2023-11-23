@@ -1,3 +1,4 @@
+import telas.BuscaArquivo;
 import telas.Configuracao;
 
 import javax.swing.*;
@@ -42,7 +43,17 @@ public class App {
                 if (line.startsWith("Rota")) {
                     String rota = line.split("=")[1];
                     if (rota.equals("true")){
+                        //O arquivo a ser processado deve ficar dentro da pasta principal
                         ManipulacaoArquivos.processarArquivosRota(pastaPrincipal, pastaSucesso, pastaErro);
+                    }else{
+                        JFrame frame = new JFrame("Front-End App");
+                        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+                        JPanel busca = new BuscaArquivo();
+                        frame.getContentPane().add(BorderLayout.CENTER, busca);
+
+                        frame.setSize(590, 400);
+                        frame.setVisible(true);
                     }
                 }
             }
